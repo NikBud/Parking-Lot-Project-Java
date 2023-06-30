@@ -3,6 +3,7 @@ package com.endava.parkinglot.controllers;
 import com.endava.parkinglot.DTO.auth.AuthAndRegistrationResponseDTO;
 import com.endava.parkinglot.DTO.auth.AuthenticationDTO;
 import com.endava.parkinglot.security.JWTUtil;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

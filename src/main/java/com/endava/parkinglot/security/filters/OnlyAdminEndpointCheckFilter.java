@@ -25,7 +25,8 @@ public class OnlyAdminEndpointCheckFilter extends OncePerRequestFilter {
     public OnlyAdminEndpointCheckFilter() {
         this.adminEndpoints = new ArrayList<>(
                 List.of(
-                        "http://localhost:8080/api/register/grantAdmin"
+                        "http://localhost:8080/api/register/grantAdmin",
+                        "http://localhost:8080/api/parkingLot/id/addUser"
                 )
         );
     }

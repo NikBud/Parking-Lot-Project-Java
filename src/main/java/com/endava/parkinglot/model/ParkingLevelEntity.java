@@ -1,16 +1,13 @@
 package com.endava.parkinglot.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Builder
 @Getter
@@ -31,6 +28,10 @@ public class ParkingLevelEntity {
     @Column(nullable = false)
     private String number_of_spaces;
 
-    @Column(nullable = false)
-    private int lot_id;
+    @ManyToOne
+    @JoinColumn(name = "lot_id")
+    private ParkingLotEntity parkingLot;
+
+    @OneToMany(mappedBy = "parkingLevelId", cascade = CascadeType.PERSIST)
+    private List<ParkingSpaceEntity> parkingSpaces;
 }

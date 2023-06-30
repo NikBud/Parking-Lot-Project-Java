@@ -6,7 +6,7 @@ Parking Lot is an iOS app developed as an internal project for the Endava 2023 S
 * [Description](#description)
 * [Installation](#installation)
 * [Report Bugs](#report-bugs)
-* [Contribution](#contribution)
+* [Tests](#tests)
 * [Contact](#contact)
 
 ## Description
@@ -28,16 +28,10 @@ This command ensures that the app connects to the appropriate database configura
 ## Report Bugs
 If you would like to report a bug please open an issue [here](https://github.com/eldlit/parking-lot/issues).
 
-## Contribution
-If you would like to contribute to the development of the Parking Lot App, please follow these guidelines:
+## Tests
+To run Unit Tests use `mvn surefire:test`
 
-1. Fork the repository and clone it to your local machine.
-
-2. Make the necessary changes and improvements.
-
-3. Ensure that the code passes all tests and adheres to the project's coding standards.
-
-4. Submit a pull request detailing the changes you have made.
+To run Integration Tests use `mvn failsafe:integration-test`
 
 ## Contact
 

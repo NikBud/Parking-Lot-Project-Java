@@ -3,33 +3,25 @@ package com.endava.parkinglot.services.impl;
 import com.endava.parkinglot.DTO.UserRegistrationDtoRequest;
 import com.endava.parkinglot.DTO.UserRegistrationDtoResponse;
 import com.endava.parkinglot.enums.Role;
-import com.endava.parkinglot.exceptions.UserNotGrantedToDoActionException;
+import com.endava.parkinglot.exceptions.UserNotFoundException;
+import com.endava.parkinglot.exceptions.ValidationCustomException;
 import com.endava.parkinglot.mapper.UserMapper;
 import com.endava.parkinglot.model.UserEntity;
 import com.endava.parkinglot.model.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static java.util.Collections.singletonList;
-
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserRegistrationServiceImplTest {
@@ -41,15 +33,15 @@ class UserRegistrationServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private Authentication authentication;
-    @Mock
-    private SecurityContext securityContext;
+    private EmailNotificationServiceImpl emailNotificationService;
     @InjectMocks
     private UserRegistrationServiceImpl userRegistrationService;
 
-    @Test
-    void register_ShouldSaveNewUserAndReturnResponseDto() {
-        UserEntity user = UserEntity.builder()
+    private UserEntity user;
+
+    @BeforeEach
+    void setup() {
+        user = UserEntity.builder()
                 .id(1L)
                 .email("john23@gmail.com")
                 .name("Jonathan")
@@ -57,6 +49,11 @@ class UserRegistrationServiceImplTest {
                 .phone("068112233")
                 .role(Role.REGULAR)
                 .build();
+    }
+
+    @Test
+    void register_ShouldSaveNewUserAndReturnResponseDto() {
+
 
         UserRegistrationDtoRequest requestDto = UserRegistrationDtoRequest.builder()
                 .email("john23@gmail.com")
@@ -85,77 +82,104 @@ class UserRegistrationServiceImplTest {
 
     @Test
     void grantAdminPermissionsById_UserWithAdminRole_ShouldChangeUserRole() {
-        final Long userId = 1L;
-        final UserEntity user = UserEntity.builder()
-                .id(userId)
-                .build();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        when(authentication.getPrincipal()).thenReturn(buildAdminUser("ROLE_ADMIN"));
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+        userRegistrationService.grantAdminPermissionsById(1L);
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-        userRegistrationService.grantAdminPermissionsById(userId);
-
-        verify(userRepository).findById(anyLong());
-        verify(userRepository).save(user);
+        verify(userRepository).save(any());
+        assertEquals(Role.ADMIN, user.getRole());
     }
 
     @Test
     void grantAdminPermissionsById_UserWithRegularRole_ShouldThrowNotGrantedToDoActionException() {
-        final Long userId = 1L;
-        final UserEntity user = UserEntity.builder()
-                .id(userId)
-                .build();
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        when(authentication.getPrincipal()).thenReturn(buildAdminUser("ROLE_REGULAR"));
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-
-        assertThrows(UserNotGrantedToDoActionException.class,
-                () -> userRegistrationService.grantAdminPermissionsById(userId), "User doesn't have authorities to do this action");
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            userRegistrationService.grantAdminPermissionsById(anyLong());
+        });
+        assertTrue(exception.getMessage().contains("User with ID"));
+        assertTrue(exception.getMessage().contains("not found."));
+        verify(userRepository, times(0)).save(any());
     }
 
     @Test
     void grantAdminPermissionsByEmail_UserWithAdminRole_ShouldChangeUserRoleFind() {
-        final String userEmail = "vasilii@gmail.com";
-        final UserEntity user = UserEntity.builder()
-                .email(userEmail)
-                .build();
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
 
-        when(authentication.getPrincipal()).thenReturn(buildAdminUser("ROLE_ADMIN"));
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+        userRegistrationService.grantAdminPermissionsByEmail("john23@gmail.com");
 
-        when(userRepository.findByEmail(userEmail)).thenReturn(Optional.of(user));
-
-        userRegistrationService.grantAdminPermissionsByEmail(userEmail);
-
-        verify(userRepository).findByEmail(userEmail);
-        verify(userRepository).save(user);
+        assertEquals(Role.ADMIN, user.getRole());
     }
 
     @Test
     void grantAdminPermissionsByEmail_UserWithRegularRole_ShouldThrowNotGrantedToDoActionException() {
-        final String userEmail = "vasilii@gmail.com";
-        final UserEntity user = UserEntity.builder()
-                .email(userEmail)
-                .build();
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
-        when(authentication.getPrincipal()).thenReturn(buildAdminUser("ROLE_REGULAR"));
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            userRegistrationService.grantAdminPermissionsByEmail(anyString());
+        });
 
-        assertThrows(UserNotGrantedToDoActionException.class,
-                () -> userRegistrationService.grantAdminPermissionsByEmail(userEmail), "User doesn't have authorities to do this action");
+        assertTrue(exception.getMessage().contains("User with email"));
+        assertTrue(exception.getMessage().contains("not found."));
+        verify(userRepository, times(0)).save(any());
     }
 
-    private UserDetails buildAdminUser(String role) {
-        return User.builder()
-                .username("Jonathan")
-                .password("Jonathan_2")
-                .authorities(singletonList(new SimpleGrantedAuthority(role)))
-                .build();
+    @Test
+    void testGrantAdminPermissions_WhenNotValidEmailProvided(){
+        ValidationCustomException exception = assertThrows(ValidationCustomException.class, () -> {
+            userRegistrationService.grantAdminPermissions(null, "nikbud03gmail.com");
+        });
+
+        assertTrue(exception.getErrorObjectMap().containsKey("email"));
+        assertEquals("Invalid email. It should be like: 'example@email.com'" ,exception.getErrorObjectMap().get("email"));
     }
+
+    @Test
+    void testGrantAdminPermissions_WhenNotValidEmailProvided2(){
+        ValidationCustomException exception = assertThrows(ValidationCustomException.class, () -> {
+            userRegistrationService.grantAdminPermissions(null, "nikbud03@gmailcom");
+        });
+
+        assertTrue(exception.getErrorObjectMap().containsKey("email"));
+        assertEquals("Invalid email. It should be like: 'example@email.com'" ,exception.getErrorObjectMap().get("email"));
+    }
+
+    @Test
+    void testGrantAdminPermissions_WhenValidIdProvidedAndEmailIsNull() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any())).thenReturn(user);
+
+        assertDoesNotThrow(() -> {
+            userRegistrationService.grantAdminPermissions(1L, null);
+        });
+
+        verify(emailNotificationService , times(1)).sendNotificationAboutGrantedAdminRole(anyString());
+        verify(emailNotificationService).sendNotificationAboutGrantedAdminRole(user.getEmail());
+        assertEquals(Role.ADMIN, user.getRole());
+    }
+
+    @Test
+    void testGrantAdminPermissions_WhenValidEmailProvidedAndIdIsNull() {
+        when(userRepository.findByEmail("john23@gmail.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any())).thenReturn(user);
+
+        assertDoesNotThrow(() -> {
+            userRegistrationService.grantAdminPermissions(null, "john23@gmail.com");
+        });
+
+        verify(emailNotificationService , times(1)).sendNotificationAboutGrantedAdminRole(anyString());
+        verify(emailNotificationService).sendNotificationAboutGrantedAdminRole(user.getEmail());
+        assertEquals(Role.ADMIN, user.getRole());
+    }
+
+    @Test
+    void testGrantAdminPermissions_WhenNullIdAndNullEmailProvided_ThenUserNotFoundExceptionIsThrown(){
+        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
+            userRegistrationService.grantAdminPermissions(null, null);
+        });
+
+        assertEquals("Missing user ID or email.", exception.getMessage());
+    }
+
+
 }

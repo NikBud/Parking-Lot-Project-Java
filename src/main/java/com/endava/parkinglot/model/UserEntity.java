@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.util.Set;
+
 @Builder
 @Getter
 @Setter
@@ -41,4 +43,10 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
+
+    @ManyToMany
+    @JoinTable(name = "user_parking_lot",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "lot_id"))
+    Set<ParkingLotEntity> parkingLots;
 }

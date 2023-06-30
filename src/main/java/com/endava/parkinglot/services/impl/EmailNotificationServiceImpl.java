@@ -42,4 +42,18 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
         }
     }
 
+    public void sendNotificationAboutAddedToParkingLot(final String userEmail, String parkingLotName) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromAddress);
+            message.setTo(userEmail);
+            message.setSubject("You have been added to Parking Lot");
+            message.setText("You have been added to " + parkingLotName);
+
+            mailSender.send(message);
+            logger.info("Email has been sent to: '" + userEmail + "'");
+        } catch (MailException mailException) {
+            throw new FailedEmailNotificationException("Could not send the email to: '" + userEmail + "'");
+        }
+    }
 }

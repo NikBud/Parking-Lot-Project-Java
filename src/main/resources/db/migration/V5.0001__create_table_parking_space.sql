@@ -2,9 +2,9 @@ CREATE TABLE IF NOT EXISTS "parking_space" (
     id SERIAL PRIMARY KEY,
     number INT NOT NULL,
     type VARCHAR(255) CHECK
-        (type IN('regular', 'accessible', 'family')) NOT NULL DEFAULT 'regular',
+        (type IN('REGULAR', 'ACCESSIBLE', 'FAMILY')) NOT NULL DEFAULT 'REGULAR',
     state VARCHAR(255) CHECK
-        (state IN('available', 'occupied', 'temporarily closed')) NOT NULL,
+        (state IN('AVAILABLE', 'OCCUPIED', 'TEMPORARILY_CLOSED')) NOT NULL DEFAULT 'AVAILABLE',
     parking_level_id INT REFERENCES parking_level(id),
     user_id INT REFERENCES user_table(id) UNIQUE
 );
