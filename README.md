@@ -1,6 +1,6 @@
 
 # Parking Lot
-Parking Lot is an iOS app developed as an internal project for the Endava 2023 Spring Internship Programme.
+Parking Lot is an iOS app developed as an internal project for the Internship Program.
 
 ## Table of Contents
 * [Description](#description)
@@ -32,9 +32,3 @@ If you would like to report a bug please open an issue [here](https://github.com
 To run Unit Tests use `mvn surefire:test`
 
 To run Integration Tests use `mvn failsafe:integration-test`
-
-## Contact
-
-If you have any questions, feedback, or issues related to the Parking Lot App, please reach out to us on Microsoft Teams.
-
-Thank you for using the Parking Lot App!
