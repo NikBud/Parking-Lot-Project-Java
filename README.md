@@ -32,3 +32,4 @@ If you would like to report a bug please open an issue [here](https://github.com
 To run Unit Tests use `mvn surefire:test`
 
 To run Integration Tests use `mvn failsafe:integration-test`
+ 
